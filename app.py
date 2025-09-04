@@ -11,7 +11,7 @@ with open("faq.txt", "r", encoding="utf-8") as f:
 # Vérifier le provider
 provider = st.secrets.get("PROVIDER", "hf").lower()
 hf_token = st.secrets.get("HF_API_TOKEN", "")
-hf_model = st.secrets.get("MODEL_HF", "mistralai/Mistral-7B-Instruct-v0.3")
+hf_model = st.secrets.get("MODEL_HF", "google/flan-t5-small")
 
 question = st.text_input("Votre question :")
 
@@ -26,8 +26,11 @@ def ask_hf(question: str) -> str:
         resp = requests.post(url, headers=headers, json=payload, timeout=60)
         resp.raise_for_status()
         data = resp.json()
+        # Google FLAN T5 renvoie un dictionnaire simple avec 'generated_text'
         if isinstance(data, list) and "generated_text" in data[0]:
             return data[0]["generated_text"]
+        elif isinstance(data, dict) and "generated_text" in data:
+            return data["generated_text"]
         return str(data)
     except Exception as e:
         return f"Erreur HF : {e}"
